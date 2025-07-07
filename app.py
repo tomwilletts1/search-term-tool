@@ -6,6 +6,28 @@ import plotly.express as px
 from src.modeling.train import main as run_pipeline
 from src.services.openai_services import get_ai_cluster_analysis, get_contextual_chat_response
 
+# --- Helper Functions ---
+def calculate_cluster_metrics(df):
+    """Calculates and aggregates performance metrics for each cluster."""
+    if df.empty or 'cluster_id' not in df.columns:
+        return pd.DataFrame()
+    agg_metrics = {
+        'impressions': 'sum',
+        'clicks': 'sum',
+        'conversions': 'sum',
+        'search_term': 'count'
+    }
+    cluster_summary = df.groupby(['cluster_id', 'cluster_theme', 'cluster_insight']).agg(agg_metrics).reset_index()
+    cluster_summary = cluster_summary.rename(columns={'search_term': 'num_terms'})
+    cluster_summary['ctr'] = (cluster_summary['clicks'] / cluster_summary['impressions']).fillna(0)
+    cluster_summary['conversion_rate'] = (cluster_summary['conversions'] / cluster_summary['clicks']).fillna(0)
+    cluster_summary['impressions'] = cluster_summary['impressions'].apply(lambda x: f"{int(x):,}")
+    cluster_summary['clicks'] = cluster_summary['clicks'].apply(lambda x: f"{int(x):,}")
+    cluster_summary['conversions'] = cluster_summary['conversions'].apply(lambda x: f"{int(x):,}")
+    cluster_summary['ctr'] = cluster_summary['ctr'].apply(lambda x: f"{x:.2%}")
+    cluster_summary['conversion_rate'] = cluster_summary['conversion_rate'].apply(lambda x: f"{x:.2%}")
+    return cluster_summary
+
 # --- App Configuration ---
 st.set_page_config(layout="wide", page_title="Search Term Clustering Tool")
 
@@ -70,28 +92,6 @@ with st.sidebar:
                 response = get_contextual_chat_response(prompt, context_summary)
                 message_placeholder.markdown(response)
         st.session_state.messages.append({"role": "assistant", "content": response})
-
-# --- Helper Functions ---
-def calculate_cluster_metrics(df):
-    """Calculates and aggregates performance metrics for each cluster."""
-    if df.empty or 'cluster_id' not in df.columns:
-        return pd.DataFrame()
-    agg_metrics = {
-        'impressions': 'sum',
-        'clicks': 'sum',
-        'conversions': 'sum',
-        'search_term': 'count'
-    }
-    cluster_summary = df.groupby(['cluster_id', 'cluster_theme', 'cluster_insight']).agg(agg_metrics).reset_index()
-    cluster_summary = cluster_summary.rename(columns={'search_term': 'num_terms'})
-    cluster_summary['ctr'] = (cluster_summary['clicks'] / cluster_summary['impressions']).fillna(0)
-    cluster_summary['conversion_rate'] = (cluster_summary['conversions'] / cluster_summary['clicks']).fillna(0)
-    cluster_summary['impressions'] = cluster_summary['impressions'].apply(lambda x: f"{int(x):,}")
-    cluster_summary['clicks'] = cluster_summary['clicks'].apply(lambda x: f"{int(x):,}")
-    cluster_summary['conversions'] = cluster_summary['conversions'].apply(lambda x: f"{int(x):,}")
-    cluster_summary['ctr'] = cluster_summary['ctr'].apply(lambda x: f"{x:.2%}")
-    cluster_summary['conversion_rate'] = cluster_summary['conversion_rate'].apply(lambda x: f"{x:.2%}")
-    return cluster_summary
 
 # --- Main App UI ---
 st.title("🧠 AI-Powered Search Term Clustering Tool")
