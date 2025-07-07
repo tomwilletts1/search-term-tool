@@ -1,2 +1,9 @@
-ipykernel
-python-dotenv
+openai, 
+pandas, 
+numpy, 
+scikit-learn, 
+hdbscan,
+umap-learn,
+matplotlib, 
+streamlit, 
+tqdm.
