@@ -23,43 +23,6 @@ with st.sidebar:
     if not openai.api_key:
         st.sidebar.warning("Please enter your OpenAI API key to use AI features.")
 
-# --- File Uploader ---
-uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
-
-if uploaded_file:
-    st.session_state.full_df = pd.read_csv(uploaded_file)
-    st.session_state.file_name = uploaded_file.name
-# --- Helper Functions ---
-def calculate_cluster_metrics(df):
-    """Calculates and aggregates performance metrics for each cluster."""
-    if df.empty or 'cluster_id' not in df.columns:
-        return pd.DataFrame()
-
-    # Define aggregations
-    agg_metrics = {
-        'impressions': 'sum',
-        'clicks': 'sum',
-        'conversions': 'sum',
-        'search_term': 'count'
-    }
-    
-    # Group by cluster and aggregate
-    cluster_summary = df.groupby(['cluster_id', 'cluster_theme', 'cluster_insight']).agg(agg_metrics).reset_index()
-    cluster_summary = cluster_summary.rename(columns={'search_term': 'num_terms'})
-
-    # Calculate rates safely
-    cluster_summary['ctr'] = (cluster_summary['clicks'] / cluster_summary['impressions']).fillna(0)
-    cluster_summary['conversion_rate'] = (cluster_summary['conversions'] / cluster_summary['clicks']).fillna(0)
-    
-    # Format for display
-    cluster_summary['impressions'] = cluster_summary['impressions'].apply(lambda x: f"{int(x):,}")
-    cluster_summary['clicks'] = cluster_summary['clicks'].apply(lambda x: f"{int(x):,}")
-    cluster_summary['conversions'] = cluster_summary['conversions'].apply(lambda x: f"{int(x):,}")
-    cluster_summary['ctr'] = cluster_summary['ctr'].apply(lambda x: f"{x:.2%}")
-    cluster_summary['conversion_rate'] = cluster_summary['conversion_rate'].apply(lambda x: f"{x:.2%}")
-    
-    return cluster_summary
-
 # --- Main App UI ---
 st.title("🧠 AI-Powered Search Term Clustering Tool")
 st.markdown("Upload your search query data to group terms by semantic meaning and performance, then get AI-powered insights.")
@@ -67,7 +30,7 @@ st.markdown("Upload your search query data to group terms by semantic meaning an
 # --- Sidebar for Controls ---
 with st.sidebar:
     st.header("⚙️ Controls")
-    uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"])
+    uploaded_file = st.file_uploader("Upload your CSV file", type=["csv"], key="sidebar_uploader")
     
     if uploaded_file:
         # Load and cache the dataframe
@@ -104,6 +67,37 @@ with st.sidebar:
                 st.session_state.plot_fig = fig
                 st.session_state.ran_clustering = True
             st.success("Analysis Complete!")
+
+# --- Helper Functions ---
+def calculate_cluster_metrics(df):
+    """Calculates and aggregates performance metrics for each cluster."""
+    if df.empty or 'cluster_id' not in df.columns:
+        return pd.DataFrame()
+
+    # Define aggregations
+    agg_metrics = {
+        'impressions': 'sum',
+        'clicks': 'sum',
+        'conversions': 'sum',
+        'search_term': 'count'
+    }
+    
+    # Group by cluster and aggregate
+    cluster_summary = df.groupby(['cluster_id', 'cluster_theme', 'cluster_insight']).agg(agg_metrics).reset_index()
+    cluster_summary = cluster_summary.rename(columns={'search_term': 'num_terms'})
+
+    # Calculate rates safely
+    cluster_summary['ctr'] = (cluster_summary['clicks'] / cluster_summary['impressions']).fillna(0)
+    cluster_summary['conversion_rate'] = (cluster_summary['conversions'] / cluster_summary['clicks']).fillna(0)
+    
+    # Format for display
+    cluster_summary['impressions'] = cluster_summary['impressions'].apply(lambda x: f"{int(x):,}")
+    cluster_summary['clicks'] = cluster_summary['clicks'].apply(lambda x: f"{int(x):,}")
+    cluster_summary['conversions'] = cluster_summary['conversions'].apply(lambda x: f"{int(x):,}")
+    cluster_summary['ctr'] = cluster_summary['ctr'].apply(lambda x: f"{x:.2%}")
+    cluster_summary['conversion_rate'] = cluster_summary['conversion_rate'].apply(lambda x: f"{x:.2%}")
+    
+    return cluster_summary
 
 # --- Main Content Area ---
 if st.session_state.get('ran_clustering', False):
