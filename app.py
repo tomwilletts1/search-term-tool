@@ -18,7 +18,17 @@ with st.sidebar:
         openai.api_key = api_key
     elif 'api_key' in st.session_state:
         openai.api_key = st.session_state['api_key']
+    else:
+        openai.api_key = None  # No key set
+    if not openai.api_key:
+        st.sidebar.warning("Please enter your OpenAI API key to use AI features.")
 
+# --- File Uploader ---
+uploaded_file = st.sidebar.file_uploader("Upload your CSV file", type=["csv"])
+
+if uploaded_file:
+    st.session_state.full_df = pd.read_csv(uploaded_file)
+    st.session_state.file_name = uploaded_file.name
 # --- Helper Functions ---
 def calculate_cluster_metrics(df):
     """Calculates and aggregates performance metrics for each cluster."""
