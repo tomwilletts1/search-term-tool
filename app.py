@@ -63,11 +63,11 @@ with st.sidebar:
             n_clusters = st.slider("Number of Clusters (KMeans only)", 2, 20, 5)
         if st.button("Run Clustering & Analysis", type="primary"):
             with st.spinner("Processing... This may take a few minutes for AI analysis."):
-                processed_data_path = "data/processed"
-                input_csv_path = os.path.join(processed_data_path, "input_temp.csv")
+                # No longer save uploaded file to data/processed
+                # Instead, process directly in-memory
+                input_csv_path = "input_temp.csv"
                 output_csv_path = "output.csv"
-                os.makedirs(processed_data_path, exist_ok=True)
-                df_preview.to_csv(input_csv_path, index=False)
+                st.session_state.full_df.to_csv(input_csv_path, index=False)
                 fig = run_pipeline(input_csv_path, output_csv_path, term_column=term_column, cluster_method=cluster_method, n_clusters=n_clusters)
                 st.session_state.results_df = pd.read_csv(output_csv_path)
                 st.session_state.summary_df = calculate_cluster_metrics(st.session_state.results_df)
