@@ -38,10 +38,13 @@ with st.sidebar:
     if api_key:
         st.session_state['api_key'] = api_key
         openai.api_key = api_key
+        os.environ["OPENAI_API_KEY"] = api_key  # Ensure env var is set for all libraries
     elif 'api_key' in st.session_state:
         openai.api_key = st.session_state['api_key']
+        os.environ["OPENAI_API_KEY"] = st.session_state['api_key']
     else:
         openai.api_key = None  # No key set
+        os.environ.pop("OPENAI_API_KEY", None)  # Remove env var if not set
     if not openai.api_key:
         st.warning("Please enter your OpenAI API key to use AI features.")
 
@@ -52,7 +55,7 @@ with st.sidebar:
     n_clusters = 3
     if uploaded_file:
         if 'full_df' not in st.session_state or st.session_state.get('file_name') != uploaded_file.name:
-            st.session_state.full_df = pd.read_csv(uploaded_file)
+            st.session_state.full_df = pd.read_csv(uploaded_file, encoding='utf-8')
             st.session_state.file_name = uploaded_file.name
             st.session_state.ran_clustering = False
         df_preview = st.session_state.full_df
