@@ -63,14 +63,13 @@ Search Term Tool/
 
 4.  **Using the Tool**:
     - Upload your CSV file via the sidebar. It should contain a column for search terms and can optionally include `impressions`, `clicks`, and `conversions`.
-    - Select the correct search term column.
-    - Adjust clustering settings if desired.
+    - Select the search term column.
+    - Adjust clustering settings if desired. The more clusters, the more variation there will be.
     - Click **"Run Clustering & Analysis"**.
-    - Explore the dashboard, filter by cluster, and use the chat to ask for deeper insights.
+    - Explore the dashboard, filter by cluster, and use the chat to ask for further insights.
 
 ---
 
 ## Notes
 - All output files are saved in the `data/processed/` directory.
-- The app uses UMAP for 2D visualization and matplotlib for plotting.
 - The codebase is modular and easy to extend for new clustering or embedding methods.
